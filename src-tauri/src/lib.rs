@@ -56,6 +56,7 @@ pub fn run() {
             commands::report::generate_report_by_tag,
             commands::water::save_water_reminders,
             commands::water::load_water_reminders,
+            commands::water::toggle_floating_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

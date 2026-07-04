@@ -1,5 +1,62 @@
 use crate::AppState;
 use crate::error::AppError;
+use tauri::Manager;
+
+#[tauri::command]
+pub async fn toggle_floating_window(
+    app: tauri::AppHandle,
+) -> Result<bool, AppError> {
+    use tauri::WebviewWindowBuilder;
+
+    // 如果已存在则关闭
+    if let Some(w) = app.get_webview_window("floating-bar") {
+        let _ = w.close();
+        return Ok(false);
+    }
+
+    // 创建新窗口
+    let window = WebviewWindowBuilder::new(
+        &app,
+        "floating-bar",
+        tauri::WebviewUrl::App("/?floating=1".into()),
+    )
+    .inner_size(280.0, 80.0)
+    .position(0.0, 0.0)
+    .decorations(false)
+    .always_on_top(true)
+    .resizable(false)
+    .skip_taskbar(true)
+    .transparent(true)
+    .shadow(false)
+    .title("快捷操作")
+    .build()
+    .map_err(|e| AppError::Database(e.to_string()))?;
+
+    // 透明 webview 背景
+    let _ = window.set_background_color(Some(tauri::webview::Color(0, 0, 0, 0)));
+
+    #[cfg(target_os = "windows")]
+    {
+        use windows::Win32::Graphics::Dwm::{
+            DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE,
+        };
+        use windows::Win32::Foundation::HWND;
+        if let Ok(hwnd) = window.hwnd() {
+            let hwnd = HWND(hwnd.0);
+            let preference = DWM_WINDOW_CORNER_PREFERENCE(1); // DWMWCP_DONOTROUND
+            unsafe {
+                let _ = DwmSetWindowAttribute(
+                    hwnd,
+                    DWMWA_WINDOW_CORNER_PREFERENCE,
+                    &preference as *const _ as *const _,
+                    std::mem::size_of::<DWM_WINDOW_CORNER_PREFERENCE>() as u32,
+                );
+            }
+        }
+    }
+
+    Ok(true)
+}
 
 #[tauri::command]
 pub fn save_water_reminders(

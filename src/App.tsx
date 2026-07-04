@@ -12,6 +12,7 @@ import TaskPage from "./pages/TaskPage";
 import ReportPage from "./pages/ReportPage";
 import DebugPage from "./pages/DebugPage";
 import WaterPage from "./pages/WaterPage";
+import FloatingBar from "./pages/FloatingBar";
 import "./App.css";
 
 const { Sider, Content } = Layout;
@@ -78,6 +79,13 @@ function App() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("reminder")) {
     return <ReminderWindow />;
+  }
+  if (params.get("floating") !== null) {
+    return (
+      <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { colorPrimary: "#722ed1" } }}>
+        <FloatingBar />
+      </ConfigProvider>
+    );
   }
 
   return (

@@ -1,7 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { Card, Row, Col, Statistic, Timeline, Modal, Input, Select, Form, message, Button, TimePicker, DatePicker, Space, Popconfirm, InputNumber, Radio, BorderBeam} from "antd";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {
   RocketOutlined, LikeOutlined, CoffeeOutlined,
   MessageOutlined, EditOutlined,
@@ -205,15 +203,6 @@ function HomePage() {
   };
 
   useEffect(() => { loadAll(); }, []);
-
-  // 主窗口关闭时关闭悬浮窗
-  useEffect(() => {
-    const unlisten = getCurrentWindow().onCloseRequested(async () => {
-      const w = await WebviewWindow.getByLabel("floating-bar");
-      w?.close();
-    });
-    return () => { unlisten.then((u) => u()); };
-  }, []);
 
   // 同步当前任务到悬浮窗
   useEffect(() => {

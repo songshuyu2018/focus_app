@@ -74,7 +74,7 @@ function ReminderWindow() {
 
 function App() {
   const [activeKey, setActiveKey] = useState("home");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const params = new URLSearchParams(window.location.search);
   if (params.get("reminder")) {

@@ -31,6 +31,18 @@ pub fn run() {
                 db: Mutex::new(conn),
             });
 
+            // 主窗口关闭时关闭悬浮窗
+            if let Some(main) = app.get_webview_window("main") {
+                let handle = app.handle().clone();
+                main.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { .. } = event {
+                        if let Some(fw) = handle.get_webview_window("floating-bar") {
+                            let _ = fw.close();
+                        }
+                    }
+                });
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

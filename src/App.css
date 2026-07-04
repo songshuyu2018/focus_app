@@ -4,48 +4,167 @@
   box-sizing: border-box;
 }
 
+body {
+  font-family:
+    "Noto Sans CJK SC", "Noto Sans SC",
+    "WenQuanYi Micro Hei", "WenQuanYi Zen Hei",
+    "Microsoft YaHei", "PingFang SC",
+    "Helvetica Neue", sans-serif;
+}
+
 html,
 body,
 #root {
   height: 100%;
   overflow: hidden;
+  background: #000;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-radius: 8px;
+  width: 100%;
   overflow: hidden;
 }
 
-.app-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+.app-container > .ant-layout {
+  width: 100% !important;
 }
+
+.ant-layout-content {
+  transition: width 0.2s;
+  min-width: 0;
+}
+
+.panel {
+  width: 100%;
+}
+
+.panel h2 {
+  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* antd 暗色主题 List 覆盖 */
+.panel .ant-list-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: #303030 !important;
+}
+
+.panel .ant-list-item-meta-title {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.panel .ant-list-item-meta-description {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.panel .ant-input,
+.panel .ant-input-affix-wrapper,
+.panel .ant-picker,
+.panel .ant-select-selector,
+.panel .ant-input-number {
+  background: #1f1f1f !important;
+  border-color: #434343 !important;
+}
+
+.panel .ant-input,
+.panel .ant-input-affix-wrapper input,
+.panel .ant-picker input,
+.panel .ant-input-number input {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.panel .ant-input::placeholder,
+.panel .ant-input-affix-wrapper input::placeholder,
+.panel .ant-picker input::placeholder {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.panel .ant-list-empty-text {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.panel .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.panel .ant-statistic-content {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+
 
 .titlebar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 40px;
-  padding: 0 12px;
-  background: #141414;
-  border-bottom: 1px solid #303030;
+  height: 80px;
+  padding: 0px 12px 0px 18px;
+  background: #000;
   user-select: none;
   flex-shrink: 0;
 }
 
+/* 侧边栏纯黑背景 */
+.ant-layout-sider {
+  background: #000 !important;
+}
+
+.ant-menu-dark {
+  background: #000 !important;
+}
+
+.ant-menu-dark .ant-menu-item {
+  border-radius: 8px !important;
+  margin: 2px 3px !important;
+  width: auto !important;
+  font-size: 20px !important;
+}
+
+.ant-menu-dark .ant-menu-item .anticon {
+  font-size: 22px !important;
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  border-radius: 8px !important;
+}
+
+.ant-layout-sider-trigger {
+  background: #000 !important;
+  border: none !important;
+}
+
 .titlebar-title {
-  font-size: 13px;
+  font-size: 20px;
   color: rgba(255, 255, 255, 0.85);
+  margin-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titlebar-emoji {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+/* 进度条涌动动画 */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.btn-left.ant-btn {
+  justify-content: flex-start !important;
 }
 
 .titlebar-controls {
   display: flex;
   gap: 4px;
+  align-self: flex-start;
+  margin-top: 10px;
 }

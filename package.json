@@ -10,11 +10,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.2",
+    "@tauri-apps/api": "^2.0.0",
+    "antd": "^6.4.4",
+    "dayjs": "^1.11.21",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "antd": "^5.22.0",
-    "@ant-design/icons": "^5.5.0",
-    "@tauri-apps/api": "^2.0.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",

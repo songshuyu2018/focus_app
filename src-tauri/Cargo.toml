@@ -1,12 +1,12 @@
 [package]
-name = "hello-tauri"
+name = "focus"
 version = "0.1.0"
-description = "Tauri 2.0 + Ant Design React Demo"
+description = "Focus - Time Management & Productivity App"
 authors = [""]
 edition = "2021"
 
 [lib]
-name = "hello_tauri_lib"
+name = "focus_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -1,21 +1,31 @@
-import { Tabs } from "antd";
-import { TagsOutlined, UnorderedListOutlined, FieldTimeOutlined, FileTextOutlined } from "@ant-design/icons";
-import TagManager from "../components/TagManager";
-import TaskManager from "../components/TaskManager";
-import TimelineManager from "../components/TimelineManager";
-import ReportDebug from "../components/ReportDebug";
+import { Button, Popconfirm, message } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+import { invoke } from "@tauri-apps/api/core";
 
 function DebugPage() {
+  const handleClear = async () => {
+    try {
+      await invoke("clear_all_data");
+      message.success("所有数据已清除");
+    } catch (e: any) { message.error("清除失败: " + e); }
+  };
+
   return (
-    <Tabs
-      defaultActiveKey="tags"
-      items={[
-        { key: "tags", label: "标签", icon: <TagsOutlined />, children: <TagManager /> },
-        { key: "tasks", label: "任务", icon: <UnorderedListOutlined />, children: <TaskManager /> },
-        { key: "timeline", label: "时间线", icon: <FieldTimeOutlined />, children: <TimelineManager /> },
-        { key: "report", label: "报告", icon: <FileTextOutlined />, children: <ReportDebug /> },
-      ]}
-    />
+    <div className="panel">
+      <h2>调试</h2>
+      <Popconfirm
+        title="清除所有数据"
+        description="此操作将删除所有任务、时间线、标签、提醒数据，不可恢复！"
+        onConfirm={handleClear}
+        okText="确认清除"
+        cancelText="取消"
+        okButtonProps={{ danger: true }}
+      >
+        <Button type="primary" danger icon={<DeleteOutlined />}>
+          清除所有数据
+        </Button>
+      </Popconfirm>
+    </div>
   );
 }
 

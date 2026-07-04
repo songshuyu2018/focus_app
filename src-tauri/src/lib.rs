@@ -57,6 +57,7 @@ pub fn run() {
             commands::water::save_water_reminders,
             commands::water::load_water_reminders,
             commands::water::toggle_floating_window,
+            commands::water::clear_all_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

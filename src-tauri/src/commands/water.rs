@@ -59,6 +59,23 @@ pub async fn toggle_floating_window(
 }
 
 #[tauri::command]
+pub fn clear_all_data(
+    state: tauri::State<AppState>,
+) -> Result<(), AppError> {
+    let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+    db.execute_batch(
+        "DELETE FROM progress_logs;
+         DELETE FROM task_tags;
+         DELETE FROM timeline_events;
+         DELETE FROM timeline_settings;
+         DELETE FROM water_reminders;
+         DELETE FROM tasks;
+         DELETE FROM tags;",
+    )?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn save_water_reminders(
     data: String,
     state: tauri::State<AppState>,

@@ -1,6 +1,7 @@
 # Focus APP developed by deepseek
 ## 任务管理
 <img width="1842" height="1224" alt="4a43241d-3a6c-47cb-bf4a-05c3381f5b7e" src="https://github.com/user-attachments/assets/9234403d-0313-4e1a-b19c-84254de0962c" />
+
 ## 每日时间线&看板
 
 支持导出日报，支持按日期段导出工作报告（可以用于输入给AI生成周报、月报🥳）

@@ -100,7 +100,7 @@ pub fn start_timeline_event(
 
     let id = Uuid::new_v4().to_string();
     db.execute(
-        "INSERT INTO timeline_events (id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, ?7, ?8, ?9)",
+        "INSERT INTO timeline_events (id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, ?7, NULL, ?8, ?9)",
         params![
             id,
             today,

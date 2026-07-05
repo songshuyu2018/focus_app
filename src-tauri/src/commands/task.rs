@@ -255,8 +255,8 @@ pub fn complete_task(id: String, state: tauri::State<AppState>) -> Result<Task, 
     // 在时间线中插入完成事件
     let event_id = uuid::Uuid::new_v4().to_string();
     db.execute(
-        "INSERT INTO timeline_events (id, date, mode, start_time, end_time, task_id, task_title, created_at)
-         VALUES (?1, ?2, 'complete', ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO timeline_events (id, date, mode, start_time, end_time, task_id, task_title, created_at, meeting_notes, meeting_minutes, meeting_task_id)
+         VALUES (?1, ?2, 'complete', ?3, ?4, ?5, ?6, ?7, NULL, NULL, NULL)",
         params![event_id, today, now, now, id, task_title, now],
     )?;
 

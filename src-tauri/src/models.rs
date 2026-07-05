@@ -110,6 +110,7 @@ pub struct TimelineEvent {
     pub task_id: Option<String>,
     pub task_title: Option<String>,
     pub meeting_notes: Option<String>,
+    pub meeting_minutes: Option<String>,
     pub meeting_task_id: Option<String>,
     pub created_at: String,
 }

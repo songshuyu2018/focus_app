@@ -100,7 +100,7 @@ pub fn start_timeline_event(
 
     let id = Uuid::new_v4().to_string();
     db.execute(
-        "INSERT INTO timeline_events (id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, ?7, ?8, ?9)",
+        "INSERT INTO timeline_events (id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, ?7, ?8, ?9)",
         params![
             id,
             today,
@@ -123,6 +123,7 @@ pub fn start_timeline_event(
         task_id: params.task_id,
         task_title,
         meeting_notes: params.meeting_notes,
+        meeting_minutes: None,
         meeting_task_id: params.meeting_task_id,
         created_at: now,
     })
@@ -132,14 +133,15 @@ pub fn start_timeline_event(
 pub fn update_timeline_event(
     id: String,
     meeting_notes: Option<String>,
+    meeting_minutes: Option<String>,
     meeting_task_id: Option<String>,
     state: tauri::State<AppState>,
 ) -> Result<TimelineEvent, AppError> {
     let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
 
     let affected = db.execute(
-        "UPDATE timeline_events SET meeting_notes = ?1, meeting_task_id = ?2 WHERE id = ?3",
-        params![meeting_notes, meeting_task_id, id],
+        "UPDATE timeline_events SET meeting_notes = ?1, meeting_minutes = ?2, meeting_task_id = ?3 WHERE id = ?4",
+        params![meeting_notes, meeting_minutes, meeting_task_id, id],
     )?;
 
     if affected == 0 {
@@ -147,7 +149,7 @@ pub fn update_timeline_event(
     }
 
     let event = db.query_row(
-        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at FROM timeline_events WHERE id = ?1",
+        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at FROM timeline_events WHERE id = ?1",
         params![id],
         |row| {
             Ok(TimelineEvent {
@@ -159,8 +161,9 @@ pub fn update_timeline_event(
                 task_id: row.get(5)?,
                 task_title: row.get(6)?,
                 meeting_notes: row.get(7)?,
-                meeting_task_id: row.get(8)?,
-                created_at: row.get(9)?,
+                meeting_minutes: row.get(8)?,
+                meeting_task_id: row.get(9)?,
+                created_at: row.get(10)?,
             })
         },
     )?;
@@ -187,7 +190,7 @@ pub fn end_current_event(
 
     // 读取刚结束的事件
     let event = db.query_row(
-        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at FROM timeline_events WHERE end_time = ?1 AND date = ?2 ORDER BY start_time DESC LIMIT 1",
+        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at FROM timeline_events WHERE end_time = ?1 AND date = ?2 ORDER BY start_time DESC LIMIT 1",
         params![now, today],
         |row| {
             Ok(TimelineEvent {
@@ -199,8 +202,9 @@ pub fn end_current_event(
                 task_id: row.get(5)?,
                 task_title: row.get(6)?,
                 meeting_notes: row.get(7)?,
-                meeting_task_id: row.get(8)?,
-                created_at: row.get(9)?,
+                meeting_minutes: row.get(8)?,
+                meeting_task_id: row.get(9)?,
+                created_at: row.get(10)?,
             })
         },
     )?;
@@ -217,7 +221,7 @@ pub fn get_current_event(
     let today = Local::now().format("%Y-%m-%d").to_string();
 
     let result = db.query_row(
-        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at FROM timeline_events WHERE end_time IS NULL AND date = ?1 ORDER BY start_time DESC LIMIT 1",
+        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at FROM timeline_events WHERE end_time IS NULL AND date = ?1 ORDER BY start_time DESC LIMIT 1",
         params![today],
         |row| {
             Ok(TimelineEvent {
@@ -229,8 +233,9 @@ pub fn get_current_event(
                 task_id: row.get(5)?,
                 task_title: row.get(6)?,
                 meeting_notes: row.get(7)?,
-                meeting_task_id: row.get(8)?,
-                created_at: row.get(9)?,
+                meeting_minutes: row.get(8)?,
+                meeting_task_id: row.get(9)?,
+                created_at: row.get(10)?,
             })
         },
     );
@@ -250,7 +255,7 @@ pub fn get_today_timeline(
     let today = Local::now().format("%Y-%m-%d").to_string();
 
     let mut stmt = db.prepare(
-        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at FROM timeline_events WHERE date = ?1 ORDER BY start_time ASC",
+        "SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at FROM timeline_events WHERE date = ?1 ORDER BY start_time ASC",
     )?;
 
     let events = stmt
@@ -264,8 +269,9 @@ pub fn get_today_timeline(
                 task_id: row.get(5)?,
                 task_title: row.get(6)?,
                 meeting_notes: row.get(7)?,
-                meeting_task_id: row.get(8)?,
-                created_at: row.get(9)?,
+                meeting_minutes: row.get(8)?,
+                meeting_task_id: row.get(9)?,
+                created_at: row.get(10)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;

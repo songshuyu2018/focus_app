@@ -17,7 +17,7 @@ interface TodayStats {
 interface TimelineEvent {
   id: string; mode: string; start_time: string; end_time: string | null;
   task_id: string | null; task_title: string | null;
-  meeting_notes: string | null; meeting_task_id: string | null;
+  meeting_notes: string | null; meeting_minutes: string | null; meeting_task_id: string | null;
   created_at: string;
 }
 interface TimelineSettings {
@@ -305,6 +305,7 @@ function HomePage() {
     setEditEvent(e);
     editForm.setFieldsValue({
       meeting_notes: e.meeting_notes || "",
+      meeting_minutes: e.meeting_minutes || "",
       meeting_task_id: e.meeting_task_id || undefined,
     });
     setEditOpen(true);
@@ -317,6 +318,7 @@ function HomePage() {
       await invoke("update_timeline_event", {
         id: editEvent.id,
         meetingNotes: v.meeting_notes || null,
+        meetingMinutes: v.meeting_minutes || null,
         meetingTaskId: v.meeting_task_id || null,
       });
       message.success("会议信息已更新");
@@ -679,7 +681,10 @@ function HomePage() {
       >
         <Form form={editForm} layout="vertical">
           <Form.Item name="meeting_notes" label="会议内容">
-            <Input.TextArea rows={3} placeholder="输入会议内容" />
+            <Input.TextArea rows={2} placeholder="输入会议内容" />
+          </Form.Item>
+          <Form.Item name="meeting_minutes" label="会议纪要">
+            <Input.TextArea rows={4} placeholder="输入会议纪要" />
           </Form.Item>
           <Form.Item name="meeting_task_id" label="关联任务">
             <Select

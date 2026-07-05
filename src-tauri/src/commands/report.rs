@@ -120,7 +120,7 @@ pub fn generate_report_by_date(
 
     // ---- 会议详情 ----
     let mut meeting_stmt = db.prepare(
-        "SELECT start_time, COALESCE(end_time, datetime('now', 'localtime')), meeting_notes, meeting_task_id
+        "SELECT start_time, COALESCE(end_time, datetime('now', 'localtime')), meeting_notes, meeting_minutes, meeting_task_id
          FROM timeline_events
          WHERE date >= ?1 AND date <= ?2 AND mode = 'meeting'
          ORDER BY start_time",
@@ -130,6 +130,7 @@ pub fn generate_report_by_date(
         start_time: String,
         end_time: String,
         notes: Option<String>,
+        minutes: Option<String>,
         related_task_id: Option<String>,
     }
 
@@ -139,12 +140,13 @@ pub fn generate_report_by_date(
                 start_time: row.get(0)?,
                 end_time: row.get(1)?,
                 notes: row.get(2)?,
-                related_task_id: row.get(3)?,
+                minutes: row.get(3)?,
+                related_task_id: row.get(4)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
 
-    let has_content = meetings.iter().any(|m| m.notes.is_some() || m.related_task_id.is_some());
+    let has_content = meetings.iter().any(|m| m.notes.is_some() || m.minutes.is_some() || m.related_task_id.is_some());
     if has_content {
         report.push_str("## 会议\n\n");
         for m in &meetings {
@@ -177,6 +179,14 @@ pub fn generate_report_by_date(
             }
             report.push_str(&format!("### {}\n\n", title));
             report.push_str(&format!("- 时长：{} 分钟\n", duration));
+            if let Some(ref min) = m.minutes {
+                if !min.is_empty() {
+                    report.push_str("- 会议纪要：\n");
+                    for line in min.lines() {
+                        report.push_str(&format!("  > {}\n", line));
+                    }
+                }
+            }
             report.push_str("\n");
         }
     }

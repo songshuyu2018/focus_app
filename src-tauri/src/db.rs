@@ -57,6 +57,7 @@ pub fn initialize(conn: &Connection) -> Result<(), rusqlite::Error> {
             task_id         TEXT REFERENCES tasks(id) ON DELETE SET NULL,
             task_title      TEXT,
             meeting_notes   TEXT,
+            meeting_minutes TEXT,
             meeting_task_id TEXT REFERENCES tasks(id) ON DELETE SET NULL,
             created_at      TEXT NOT NULL
         );
@@ -80,6 +81,8 @@ pub fn initialize(conn: &Connection) -> Result<(), rusqlite::Error> {
 fn migrate_timeline_events(conn: &Connection) -> Result<(), rusqlite::Error> {
     // 尝试添加 task_title 列（如果已存在则忽略错误）
     let _ = conn.execute("ALTER TABLE timeline_events ADD COLUMN task_title TEXT", []);
+    // 添加 meeting_minutes 列
+    let _ = conn.execute("ALTER TABLE timeline_events ADD COLUMN meeting_minutes TEXT", []);
 
     // 尝试插入一条 complete 模式来检测约束是否已更新
     let test_ok = conn
@@ -108,13 +111,14 @@ fn migrate_timeline_events(conn: &Connection) -> Result<(), rusqlite::Error> {
             task_id         TEXT REFERENCES tasks(id) ON DELETE SET NULL,
             task_title      TEXT,
             meeting_notes   TEXT,
+            meeting_minutes TEXT,
             meeting_task_id TEXT REFERENCES tasks(id) ON DELETE SET NULL,
             created_at      TEXT NOT NULL
         );
 
         INSERT INTO timeline_events_new
-            (id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at)
-            SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_task_id, created_at
+            (id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at)
+            SELECT id, date, mode, start_time, end_time, task_id, task_title, meeting_notes, meeting_minutes, meeting_task_id, created_at
             FROM timeline_events;
 
         DROP TABLE timeline_events;

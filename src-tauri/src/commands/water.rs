@@ -5,14 +5,41 @@ use tauri::Manager;
 #[tauri::command]
 pub async fn toggle_floating_window(
     app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
 ) -> Result<bool, AppError> {
     use tauri::WebviewWindowBuilder;
 
-    // 如果已存在则关闭
+    // 如果已存在则关闭（先保存位置）
     if let Some(w) = app.get_webview_window("floating-bar") {
+        if let Ok(pos) = w.outer_position() {
+            let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+            let data = serde_json::json!({"x": pos.x, "y": pos.y}).to_string();
+            let _ = db.execute(
+                "INSERT INTO water_reminders (id, data) VALUES ('floating_pos', ?1)
+                 ON CONFLICT(id) DO UPDATE SET data = excluded.data",
+                rusqlite::params![data],
+            );
+        }
         let _ = w.close();
         return Ok(false);
     }
+
+    // 从 DB 读取上次保存的位置
+    let saved_pos: Option<(i32, i32)> = {
+        let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+        db.query_row(
+            "SELECT data FROM water_reminders WHERE id = 'floating_pos'",
+            [],
+            |row| row.get::<_, String>(0),
+        )
+        .ok()
+        .and_then(|data| {
+            serde_json::from_str::<serde_json::Value>(&data).ok()
+                .and_then(|v| {
+                    Some((v["x"].as_i64()? as i32, v["y"].as_i64()? as i32))
+                })
+        })
+    };
 
     // 创建新窗口
     let window = WebviewWindowBuilder::new(
@@ -21,7 +48,6 @@ pub async fn toggle_floating_window(
         tauri::WebviewUrl::App("/?floating=1".into()),
     )
     .inner_size(280.0, 80.0)
-    .position(0.0, 0.0)
     .decorations(false)
     .always_on_top(true)
     .resizable(false)
@@ -32,6 +58,11 @@ pub async fn toggle_floating_window(
     .build()
     .map_err(|e| AppError::Database(e.to_string()))?;
 
+    // 恢复上次保存的位置
+    if let Some((x, y)) = saved_pos {
+        let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
+    }
+
     // 透明 webview 背景
     let _ = window.set_background_color(Some(tauri::webview::Color(0, 0, 0, 0)));
 
@@ -40,13 +71,10 @@ pub async fn toggle_floating_window(
         use windows::Win32::Graphics::Dwm::{
             DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE,
         };
-        use windows::Win32::UI::WindowsAndMessaging::{
-            SetWindowPos, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE,
-        };
         use windows::Win32::Foundation::HWND;
         if let Ok(hwnd) = window.hwnd() {
             let hwnd = HWND(hwnd.0);
-            let preference = DWM_WINDOW_CORNER_PREFERENCE(1); // DWMWCP_DONOTROUND
+            let preference = DWM_WINDOW_CORNER_PREFERENCE(1);
             unsafe {
                 let _ = DwmSetWindowAttribute(
                     hwnd,
@@ -54,13 +82,57 @@ pub async fn toggle_floating_window(
                     &preference as *const _ as *const _,
                     std::mem::size_of::<DWM_WINDOW_CORNER_PREFERENCE>() as u32,
                 );
-                // 置顶窗口，覆盖任务栏
-                SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             }
         }
     }
 
     Ok(true)
+}
+
+#[tauri::command]
+pub fn save_floating_position(
+    x: i32,
+    y: i32,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), AppError> {
+    let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+    let data = serde_json::json!({"x": x, "y": y}).to_string();
+    db.execute(
+        "INSERT INTO water_reminders (id, data) VALUES ('floating_pos', ?1)
+         ON CONFLICT(id) DO UPDATE SET data = excluded.data",
+        rusqlite::params![data],
+    )?;
+    Ok(())
+}
+
+#[derive(serde::Serialize)]
+pub struct FloatingPosition {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[tauri::command]
+pub fn get_floating_position(
+    state: tauri::State<'_, AppState>,
+) -> Result<Option<FloatingPosition>, AppError> {
+    let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+    let result = db.query_row(
+        "SELECT data FROM water_reminders WHERE id = 'floating_pos'",
+        [],
+        |row| row.get::<_, String>(0),
+    );
+    match result {
+        Ok(data) => {
+            let v: serde_json::Value = serde_json::from_str(&data)
+                .map_err(|e| AppError::Database(e.to_string()))?;
+            Ok(Some(FloatingPosition {
+                x: v["x"].as_f64().unwrap_or(0.0),
+                y: v["y"].as_f64().unwrap_or(0.0),
+            }))
+        }
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(e) => Err(AppError::from(e)),
+    }
 }
 
 #[tauri::command]

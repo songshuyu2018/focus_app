@@ -43,7 +43,7 @@ function ReportDebug() {
 
   return (
     <div className="panel">
-      <h2>报告调试</h2>
+      <h2>报告生成</h2>
 
       <Space direction="vertical" size={16} style={{ width: "100%", maxWidth: 500 }}>
         {/* 按日期 */}

@@ -69,6 +69,8 @@ pub fn run() {
             commands::water::save_water_reminders,
             commands::water::load_water_reminders,
             commands::water::toggle_floating_window,
+            commands::water::save_floating_position,
+            commands::water::get_floating_position,
             commands::water::clear_all_data,
         ])
         .run(tauri::generate_context!())

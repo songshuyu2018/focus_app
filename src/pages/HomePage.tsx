@@ -356,6 +356,8 @@ function HomePage() {
       const result = await invoke<TimelineEvent | null>("end_current_event");
       if (result) {
         message.success("已结束当前事件");
+        localStorage.setItem("__floating_mode", "");
+        localStorage.setItem("__floating_refresh", Date.now().toString());
       } else {
         message.warning("没有进行中的事件");
       }

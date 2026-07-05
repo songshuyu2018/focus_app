@@ -8,7 +8,7 @@ function FloatingBar() {
   const loadData = useCallback(() => {
     try {
       const raw = localStorage.getItem("__floating_mode");
-      if (raw) setMode(raw);
+      if (raw !== null) setMode(raw);
     } catch {}
   }, []);
 
@@ -22,7 +22,7 @@ function FloatingBar() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(loadData, 5_000);
+    const timer = setInterval(loadData, 1_000);
     return () => clearInterval(timer);
   }, [loadData]);
 

@@ -40,6 +40,9 @@ pub async fn toggle_floating_window(
         use windows::Win32::Graphics::Dwm::{
             DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE,
         };
+        use windows::Win32::UI::WindowsAndMessaging::{
+            SetWindowPos, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE,
+        };
         use windows::Win32::Foundation::HWND;
         if let Ok(hwnd) = window.hwnd() {
             let hwnd = HWND(hwnd.0);
@@ -51,6 +54,8 @@ pub async fn toggle_floating_window(
                     &preference as *const _ as *const _,
                     std::mem::size_of::<DWM_WINDOW_CORNER_PREFERENCE>() as u32,
                 );
+                // 置顶窗口，覆盖任务栏
+                SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             }
         }
     }

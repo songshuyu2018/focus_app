@@ -151,9 +151,17 @@ pub fn generate_report_by_date(
             if m.notes.is_none() && m.related_task_id.is_none() {
                 continue;
             }
-            let start_ts: i64 = m.start_time[11..19].replace(':', "").parse().unwrap_or(0) as i64;
-            let end_ts: i64 = m.end_time[11..19].replace(':', "").parse().unwrap_or(0) as i64;
-            let duration = (end_ts - start_ts).max(0);
+            fn time_to_minutes(s: &str) -> i64 {
+                let parts: Vec<&str> = s.split(':').collect();
+                if parts.len() >= 2 {
+                    let h: i64 = parts[0].parse().unwrap_or(0);
+                    let m: i64 = parts[1].parse().unwrap_or(0);
+                    h * 60 + m
+                } else { 0 }
+            }
+            let start_min = time_to_minutes(&m.start_time[11..16]);
+            let end_min = time_to_minutes(&m.end_time[11..16]);
+            let duration = (end_min - start_min).max(0);
 
             let mut title = format!("{}", &m.start_time[11..16]);
             if let Some(ref n) = m.notes {

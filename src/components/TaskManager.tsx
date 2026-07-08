@@ -294,7 +294,6 @@ function TaskManager() {
                 <Progress percent={p} size="small"
                   style={{ width: 160, marginRight: 8 }}
                   strokeColor={p === 100 ? "#52c41a" : undefined} />
-                {p}%
               </div>
             ),
           },

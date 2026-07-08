@@ -490,7 +490,6 @@ function HomePage() {
   const dayEnd = effectiveEnd;
   const totalMin = timeToMinutes(dayEnd) - timeToMinutes(dayStart);
 
-  // 已过去时间占进度条的百分比
   const nowMin = now.hour() * 60 + now.minute();
   const pastPct = totalMin > 0
     ? Math.min(100, Math.max(0, ((nowMin - timeToMinutes(dayStart)) / totalMin) * 100))
@@ -600,19 +599,21 @@ function HomePage() {
         </div>
         <div style={{ position: "relative", height: 20, borderRadius: 10, overflow: "hidden" }}>
           <div style={{
-            display: "flex", height: 20, borderRadius: 10, overflow: "hidden", gap: 2,
+            display: "flex", height: 20, borderRadius: 10, overflow: "hidden",
             opacity: isActive ? 1 : 0.35,
             transition: "opacity 0.5s",
           }}>
             {segments.map((seg, i) => {
               const pct = ((seg.end - seg.start) / totalMin) * 100;
+              const isLast = i === segments.length - 1;
               return (
                 <div
                   key={i}
                   style={{
-                    width: `${pct}%`,
+                    width: isLast ? `${pct}%` : `calc(${pct}% - 2px)`,
                     height: "100%",
                     background: seg.color,
+                    marginRight: isLast ? 0 : 2,
                     transition: "width 0.5s",
                   }}
                 />

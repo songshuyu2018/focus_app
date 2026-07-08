@@ -136,6 +136,37 @@ pub fn get_floating_position(
 }
 
 #[tauri::command]
+pub fn save_titlebar_config(
+    data: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), AppError> {
+    let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+    db.execute(
+        "INSERT INTO water_reminders (id, data) VALUES ('titlebar_config', ?1)
+         ON CONFLICT(id) DO UPDATE SET data = excluded.data",
+        rusqlite::params![data],
+    )?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn load_titlebar_config(
+    state: tauri::State<'_, AppState>,
+) -> Result<String, AppError> {
+    let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+    let result = db.query_row(
+        "SELECT data FROM water_reminders WHERE id = 'titlebar_config'",
+        [],
+        |row| row.get::<_, String>(0),
+    );
+    match result {
+        Ok(data) => Ok(data),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok("[]".to_string()),
+        Err(e) => Err(AppError::from(e)),
+    }
+}
+
+#[tauri::command]
 pub fn clear_all_data(
     state: tauri::State<AppState>,
 ) -> Result<(), AppError> {
@@ -150,6 +181,29 @@ pub fn clear_all_data(
          DELETE FROM tags;",
     )?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn check_water_reminder(
+    state: tauri::State<'_, AppState>,
+) -> Result<bool, AppError> {
+    let db = state.db.lock().map_err(|e| AppError::Database(e.to_string()))?;
+    let raw: String = db.query_row(
+        "SELECT data FROM water_reminders WHERE id = 'singleton'",
+        [],
+        |row| row.get(0),
+    ).unwrap_or_else(|_| "[]".to_string());
+    drop(db);
+
+    let now = chrono::Local::now().format("%H:%M").to_string();
+    if let Ok(reminders) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) {
+        for r in reminders {
+            if r["time"].as_str() == Some(&now) {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
 }
 
 #[tauri::command]

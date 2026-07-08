@@ -1,0 +1,20 @@
+// 从 public/emoji/ 目录自动生成的图标列表
+export const EMOJI_IMAGES = [
+  "/emoji/1f31e_微笑的太阳.png",
+  "/emoji/1f35c_面条.png",
+  "/emoji/1f379_热带水果饮料.png",
+  "/emoji/1f47b_鬼.png",
+  "/emoji/1f47d_外星人.png",
+  "/emoji/1f4a4_睡着.png",
+  "/emoji/1f4af_一百分.png",
+  "/emoji/1f62d_放声大哭.png",
+  "/emoji/1f63a_大笑的猫.png",
+  "/emoji/1f648_非礼勿视.png",
+  "/emoji/1f916_机器人.png",
+  "/emoji/1f921_小丑脸.png",
+  "/emoji/1f929_好崇拜哦.png",
+  "/emoji/1f970_喜笑颜开.png",
+  "/emoji/1f973_聚会笑脸.png",
+  "/emoji/2615_热饮.png",
+  "/emoji/2728_闪亮.png",
+];

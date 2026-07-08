@@ -31,6 +31,48 @@ pub fn run() {
                 db: Mutex::new(conn),
             });
 
+            // 后台定时检查喝水提醒
+            {
+                let handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    let mut last_minute = String::new();
+                    loop {
+                        std::thread::sleep(std::time::Duration::from_secs(2));
+                        let now = chrono::Local::now().format("%H:%M").to_string();
+                        if now == last_minute { continue; }
+                        last_minute = now.clone();
+                        let db_state = handle.state::<AppState>();
+                        let db = db_state.db.lock().unwrap();
+                        let raw: Result<String, _> = db.query_row(
+                            "SELECT data FROM water_reminders WHERE id = 'singleton'",
+                            [],
+                            |row| row.get(0),
+                        );
+                        drop(db);
+                        if let Ok(raw) = raw {
+                            if let Ok(reminders) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) {
+                                for r in &reminders {
+                                    if r["time"].as_str() == Some(&now) {
+                                        if handle.get_webview_window("water-reminder").is_none() {
+                                            let _ = tauri::WebviewWindowBuilder::new(
+                                                &handle,
+                                                "water-reminder",
+                                                tauri::WebviewUrl::App(format!("/?reminder={}", &now).into()),
+                                            )
+                                            .fullscreen(true)
+                                            .always_on_top(true)
+                                            .title("提醒")
+                                            .build();
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
             // 主窗口关闭时关闭悬浮窗
             if let Some(main) = app.get_webview_window("main") {
                 let handle = app.handle().clone();
@@ -71,6 +113,9 @@ pub fn run() {
             commands::water::toggle_floating_window,
             commands::water::save_floating_position,
             commands::water::get_floating_position,
+            commands::water::save_titlebar_config,
+            commands::water::load_titlebar_config,
+            commands::water::check_water_reminder,
             commands::water::clear_all_data,
         ])
         .run(tauri::generate_context!())

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ConfigProvider, theme, Layout, Menu } from "antd";
 import {
   HomeOutlined, UnorderedListOutlined,
-  FileTextOutlined, BugOutlined,
+  FileTextOutlined, SettingOutlined,
   CoffeeOutlined,
 } from "@ant-design/icons";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -22,7 +22,7 @@ const menuItems = [
   { key: "tasks", icon: <UnorderedListOutlined />, label: "任务管理" },
   { key: "report", icon: <FileTextOutlined />, label: "报告生成" },
   { key: "water", icon: <CoffeeOutlined />, label: "喝水助手" },
-  { key: "debug", icon: <BugOutlined />, label: "调试页面" },
+  { key: "debug", icon: <SettingOutlined />, label: "设置" },
 ];
 
 const pageMap: Record<string, React.ReactNode> = {
@@ -37,15 +37,24 @@ function ReminderWindow() {
   const params = new URLSearchParams(window.location.search);
   const reminderTime = params.get("reminder") || "";
 
-  // 从 localStorage 读取提醒数据（解决 base64 图片 URL 过长问题）
+  // 从 localStorage 读取提醒配置，按时间查找匹配项
   let reminderContent = "该喝水啦！";
   let reminderIcon = "/emoji/1f379_热带水果饮料.png";
   try {
     const raw = localStorage.getItem("__reminder_data");
     if (raw) {
-      const data = JSON.parse(raw);
-      reminderContent = data.content || reminderContent;
-      reminderIcon = data.icon || reminderIcon;
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const match = list.find((r: any) => r.time === reminderTime);
+        if (match) {
+          reminderContent = match.content || reminderContent;
+          reminderIcon = match.icon || reminderIcon;
+        }
+      } else {
+        // 兼容旧格式
+        reminderContent = list.content || reminderContent;
+        reminderIcon = list.icon || reminderIcon;
+      }
     }
   } catch {}
 

@@ -1,20 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button, TimePicker, Popconfirm, message, Modal, Input, Select, Table } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, UploadOutlined } from "@ant-design/icons";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { invoke } from "@tauri-apps/api/core";
 import dayjs from "dayjs";
+import { EMOJI_IMAGES } from "../emojiList";
 
 const DEFAULT_ICON = "/emoji/1f379_热带水果饮料.png";
-
-const EMOJI_IMAGES = [
-  "/emoji/1f379_热带水果饮料.png",
-  "/emoji/1f31e_微笑的太阳.png",
-  "/emoji/1f35c_面条.png",
-  "/emoji/2615_热饮.png",
-  "/emoji/2728_闪亮.png",
-  "/emoji/1f4a4_睡着.png",
-];
 
 interface Reminder {
   time: string;
@@ -39,7 +31,6 @@ async function saveReminders(list: Reminder[]) {
 function WaterPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [pickerValue, setPickerValue] = useState<dayjs.Dayjs | null>(null);
-  const lastAlertMinute = useRef("");
 
   useEffect(() => { loadReminders().then(setReminders); }, []);
 
@@ -82,30 +73,10 @@ function WaterPage() {
     setEditOpen(false);
   };
 
-  // 每秒检查当前时间是否匹配提醒
-  const checkReminder = useCallback(() => {
-    const now = dayjs().format("HH:mm");
-    if (now === lastAlertMinute.current) return;
-    const match = reminders.find((r) => r.time === now);
-    if (match) {
-      lastAlertMinute.current = now;
-      // 通过 localStorage 传递提醒数据（避免 URL 过长）
-      localStorage.setItem("__reminder_data", JSON.stringify({
-        time: now, content: match.content, icon: match.icon,
-      }));
-      new WebviewWindow(`water-${now.replace(":", "")}`, {
-        url: `/?reminder=${encodeURIComponent(now)}`,
-        fullscreen: true,
-        alwaysOnTop: true,
-        title: "提醒",
-      });
-    }
-  }, [reminders]);
-
+  // reminders 变化时全量同步到 localStorage
   useEffect(() => {
-    const timer = setInterval(checkReminder, 1000);
-    return () => clearInterval(timer);
-  }, [checkReminder]);
+    localStorage.setItem("__reminder_data", JSON.stringify(reminders));
+  }, [reminders]);
 
   return (
     <div className="panel">

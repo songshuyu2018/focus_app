@@ -1,6 +1,6 @@
 [package]
 name = "focus"
-version = "0.1.0"
+version = "0.1.1"
 description = "Focus - Time Management & Productivity App"
 authors = [""]
 edition = "2021"

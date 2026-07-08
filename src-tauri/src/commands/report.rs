@@ -111,7 +111,7 @@ pub fn generate_report_by_date(
                 report.push_str("| 时间 | 描述 | 进度 |\n");
                 report.push_str("|------|------|------|\n");
                 for (ts, desc, prog) in &logs {
-                    report.push_str(&format!("| {} | {} | {}% |\n", &ts[..ts.len().min(16)], desc, prog));
+                    report.push_str(&format!("| {} | {} | {}% |\n", &ts[..ts.len().min(16)], desc.replace('\n', "<br>"), prog));
                 }
             }
             report.push_str("\n\n");
@@ -299,7 +299,7 @@ pub fn generate_report_by_tag(
                 report.push_str(&format!(
                     "| {} | {} | {}% |\n",
                     &log.timestamp[..log.timestamp.len().min(16)],
-                    log.description,
+                    log.description.replace('\n', "<br>"),
                     log.progress
                 ));
             }

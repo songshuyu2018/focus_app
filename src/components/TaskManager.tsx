@@ -187,8 +187,12 @@ function TaskManager() {
   };
 
   const handleComplete = async (id: string) => {
-    try { await invoke("complete_task", { id }); message.success("已标记完成"); doLoad(); }
-    catch (e: any) { message.error("操作失败: " + e); }
+    try {
+      await invoke("complete_task", { id });
+      if (id === localStorage.getItem("__default_task")) localStorage.removeItem("__default_task");
+      message.success("已标记完成");
+      doLoad();
+    } catch (e: any) { message.error("操作失败: " + e); }
   };
 
   // ---- progress ----
@@ -269,7 +273,7 @@ function TaskManager() {
         dataSource={tasks}
         rowKey="id"
         locale={{ emptyText: "暂无任务" }}
-        pagination={{ pageSize: 6, showSizeChanger: false }}
+        pagination={{ pageSize: 8, showSizeChanger: false }}
         columns={[
           {
             title: "任务名称", dataIndex: "title",

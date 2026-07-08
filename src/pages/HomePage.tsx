@@ -178,6 +178,16 @@ function HomePage() {
   const [reportContent, setReportContent] = useState("");
   const [reportDate, setReportDate] = useState(dayjs());
 
+  // 默认任务
+  const [defaultTaskId, setDefaultTaskId] = useState<string | null>(
+    () => localStorage.getItem("__default_task") || null
+  );
+  const updateDefaultTask = (id: string | null) => {
+    setDefaultTaskId(id);
+    if (id) localStorage.setItem("__default_task", id);
+    else localStorage.removeItem("__default_task");
+  };
+
   // quick progress modal (from timeline)
   const [quickProgressOpen, setQuickProgressOpen] = useState(false);
   const [quickProgressTaskId, setQuickProgressTaskId] = useState("");
@@ -294,6 +304,7 @@ function HomePage() {
   const handleQuickComplete = async (taskId: string) => {
     try {
       await invoke("complete_task", { id: taskId });
+      if (taskId === defaultTaskId) updateDefaultTask(null);
       message.success("任务已标记完成");
       showCelebration("/emoji/1f4af_一百分.png");
       loadAll();
@@ -346,6 +357,7 @@ function HomePage() {
         },
       });
       if (v.mode === "rest") showCelebration("/emoji/1f929_好崇拜哦.png");
+      if (v.mode === "task" && v.task_id) updateDefaultTask(v.task_id);
       message.success(`已进入${v.mode === "task" ? "任务" : v.mode === "meeting" ? "会议" : "休息"}模式`);
       setStartOpen(false);
       loadAll();
@@ -518,10 +530,11 @@ function HomePage() {
                 onChange={async (e) => {
                   const m = e.target.value;
                   if (m === stats?.current_mode) return;
+                  if (m === "task" && !defaultTaskId) { openStart(); return; }
                   try {
                     if (stats?.current_mode) await invoke("end_current_event");
                     await invoke("start_timeline_event", {
-                      params: { mode: m, task_id: null, meeting_notes: null, meeting_task_id: null },
+                      params: { mode: m, task_id: m === "task" ? defaultTaskId : null, meeting_notes: null, meeting_task_id: null },
                     });
                     if (m === "rest") showCelebration("/emoji/1f929_好崇拜哦.png");
                     message.success(`已切换到${m === "task" ? "专注" : m === "meeting" ? "会议" : "休息"}模式`);
@@ -654,7 +667,7 @@ function HomePage() {
         </div>
 
         {/* 右侧可滚动时间轴 */}
-        <div style={{ flex: 1, maxHeight: 260, overflow: "auto", minWidth: 0 }}>
+        <div style={{ flex: 1, maxHeight: 350, overflow: "auto", minWidth: 0 }}>
           {events.length === 0 ? (
             <p style={{ color: "rgba(255,255,255,0.45)" }}>暂无记录</p>
           ) : (

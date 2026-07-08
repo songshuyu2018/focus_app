@@ -34,6 +34,10 @@ function FloatingBar() {
 
   const handleModeChange = async (m: string) => {
     if (m === mode) return;
+    if (m === "task") {
+      const defaultId = localStorage.getItem("__default_task");
+      if (!defaultId) { message.warning("请在首页选择任务"); return; }
+    }
     try {
       if (mode) {
         await invoke("end_current_event");
@@ -41,7 +45,7 @@ function FloatingBar() {
       await invoke("start_timeline_event", {
         params: {
           mode: m,
-          task_id: null,
+          task_id: m === "task" ? localStorage.getItem("__default_task") : null,
           meeting_notes: null,
           meeting_task_id: null,
         },

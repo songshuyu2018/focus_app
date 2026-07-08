@@ -173,6 +173,27 @@ body,
   justify-content: flex-start !important;
 }
 
+/* 深色滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #434343; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+* { scrollbar-color: #434343 transparent; scrollbar-width: thin; }
+
+/* Timeline 图标不裁切 + 左侧留白 */
+.ant-timeline {
+  padding-left: 4px;
+}
+.ant-timeline-item-head {
+  width: 24px !important;
+  height: 24px !important;
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: -4px;
+}
+
 .titlebar-controls {
   display: flex;
   gap: 4px;

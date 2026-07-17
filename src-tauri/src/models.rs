@@ -133,3 +133,93 @@ pub struct TodayStats {
     pub focused_task_count: u64,
     pub current_mode: Option<String>,
 }
+
+// ===== AI 监工 =====
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum AuthType {
+    Password,
+    Key,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServerConfig {
+    pub id: String,
+    pub name: String,
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    pub auth_type: AuthType,
+    #[serde(skip_serializing)]
+    pub password: Option<String>,
+    pub key_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TunnelInfo {
+    pub server_id: String,
+    pub local_port: u16,
+    pub connected: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PermissionRequest {
+    pub id: String,
+    pub tool: String,
+    pub description: String,
+    #[serde(default)]
+    pub arguments: serde_json::Value,
+    #[serde(default)]
+    pub options: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ThinkingInfo {
+    pub text: String,
+    pub progress: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionState {
+    pub id: String,
+    pub name: String,
+    pub status: String,
+    #[serde(default)]
+    pub working_directory: String,
+    pub pid: Option<u32>,
+    #[serde(default)]
+    pub can_remote_confirm: bool,
+    #[serde(default)]
+    pub cc_session_id: String,
+    pub permission_request: Option<PermissionRequest>,
+    pub thinking: Option<ThinkingInfo>,
+    pub started_at: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscoverResult {
+    pub discovered: u32,
+    pub added: u32,
+    #[serde(default)]
+    pub sessions: Vec<SessionState>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiResponse {
+    #[serde(default)]
+    pub ok: bool,
+    #[serde(default)]
+    pub error: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub session_id: Option<String>,
+}

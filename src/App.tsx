@@ -3,7 +3,7 @@ import { ConfigProvider, theme, Layout, Menu } from "antd";
 import {
   HomeOutlined, UnorderedListOutlined,
   FileTextOutlined, SettingOutlined,
-  CoffeeOutlined,
+  CoffeeOutlined, RobotOutlined,
 } from "@ant-design/icons";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import TitleBar from "./components/TitleBar";
@@ -12,6 +12,8 @@ import TaskPage from "./pages/TaskPage";
 import ReportPage from "./pages/ReportPage";
 import DebugPage from "./pages/DebugPage";
 import WaterPage from "./pages/WaterPage";
+import AiWatchPage from "./pages/AiWatchPage";
+import MonitorWindow from "./pages/aiwatch/MonitorWindow";
 import FloatingBar from "./pages/FloatingBar";
 import "./App.css";
 
@@ -22,6 +24,7 @@ const menuItems = [
   { key: "tasks", icon: <UnorderedListOutlined />, label: "任务管理" },
   { key: "report", icon: <FileTextOutlined />, label: "报告生成" },
   { key: "water", icon: <CoffeeOutlined />, label: "喝水助手" },
+  { key: "aiwatch", icon: <RobotOutlined />, label: "AI监工" },
   { key: "debug", icon: <SettingOutlined />, label: "设置" },
 ];
 
@@ -30,6 +33,7 @@ const pageMap: Record<string, React.ReactNode> = {
   tasks: <TaskPage />,
   report: <ReportPage />,
   water: <WaterPage />,
+  aiwatch: <AiWatchPage />,
   debug: <DebugPage />,
 };
 
@@ -88,6 +92,9 @@ function App() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("reminder")) {
     return <ReminderWindow />;
+  }
+  if (params.get("ai_monitor") !== null) {
+    return <MonitorWindow />;
   }
   if (params.get("floating") !== null) {
     return (

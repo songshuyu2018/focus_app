@@ -2,10 +2,13 @@ mod commands;
 mod db;
 mod error;
 mod models;
+mod ssh;
+mod ws_relay;
 
 use rusqlite::Connection;
 use std::sync::Mutex;
 use tauri::Manager;
+use crate::ssh::SshTunnel;
 
 pub struct AppState {
     pub db: Mutex<Connection>,
@@ -30,6 +33,8 @@ pub fn run() {
             app.manage(AppState {
                 db: Mutex::new(conn),
             });
+            app.manage(commands::ai_watch::TunnelStore::new());
+            app.manage(ws_relay::WsRelay::new());
 
             // 后台定时检查喝水提醒
             {
@@ -73,13 +78,27 @@ pub fn run() {
                 });
             }
 
-            // 主窗口关闭时关闭悬浮窗
+            // 主窗口关闭时关闭悬浮窗 + 监控窗口 + 清理 SSH 隧道
             if let Some(main) = app.get_webview_window("main") {
                 let handle = app.handle().clone();
                 main.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { .. } = event {
                         if let Some(fw) = handle.get_webview_window("floating-bar") {
                             let _ = fw.close();
+                        }
+                        // 关闭所有监控窗口
+                        for (label, w) in handle.webview_windows() {
+                            if label.starts_with("monitor-") {
+                                let _ = w.close();
+                            }
+                        }
+                        // 清理所有 SSH 隧道
+                        if let Some(store) = handle.try_state::<commands::ai_watch::TunnelStore>() {
+                            if let Ok(mut tunnels) = store.tunnels.lock() {
+                                for (_, mut t) in tunnels.drain() {
+                                    t.close();
+                                }
+                            }
                         }
                     }
                 });
@@ -117,6 +136,27 @@ pub fn run() {
             commands::water::load_titlebar_config,
             commands::water::check_water_reminder,
             commands::water::clear_all_data,
+            commands::ai_watch::list_servers,
+            commands::ai_watch::add_server,
+            commands::ai_watch::update_server,
+            commands::ai_watch::delete_server,
+            commands::ai_watch::connect_server,
+            commands::ai_watch::disconnect_server,
+            commands::ai_watch::get_tunnel_info,
+            commands::ai_watch::get_server_port,
+            commands::ai_watch::list_sessions,
+            commands::ai_watch::discover_sessions,
+            commands::ai_watch::get_session,
+            commands::ai_watch::poll_session_state,
+            commands::ai_watch::get_tunnel_port_for_session,
+            commands::ai_watch::respond_session_permission,
+            commands::ai_watch::start_pty_session,
+            commands::ai_watch::open_monitor_window,
+            commands::ai_watch::fix_monitor_transparent,
+            commands::ai_watch::close_all_monitors,
+            commands::ai_watch::close_monitor_window,
+            ws_relay::start_monitor_ws,
+            ws_relay::stop_monitor_ws,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

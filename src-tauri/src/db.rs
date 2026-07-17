@@ -65,6 +65,17 @@ pub fn initialize(conn: &Connection) -> Result<(), rusqlite::Error> {
         CREATE INDEX IF NOT EXISTS idx_timeline_events_date
             ON timeline_events(date);
 
+        CREATE TABLE IF NOT EXISTS ai_servers (
+            id          TEXT PRIMARY KEY,
+            name        TEXT NOT NULL,
+            host        TEXT NOT NULL,
+            port        INTEGER NOT NULL,
+            username    TEXT NOT NULL,
+            auth_type   TEXT NOT NULL,
+            password    TEXT,
+            key_path    TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS water_reminders (
             id      TEXT PRIMARY KEY,
             data    TEXT NOT NULL

@@ -42,6 +42,7 @@ export default function MonitorWindow() {
   const portRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [displayName, setDisplayName] = useState(decodeURIComponent(sessionName));
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -153,6 +154,15 @@ export default function MonitorWindow() {
     return () => window.removeEventListener("mousedown", onMouseDown);
   }, []);
 
+  // 每 2s 检测会话名称变更
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const newName = localStorage.getItem(`__monitor_name_${sessionId}`);
+      if (newName) setDisplayName(newName);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [sessionId]);
+
   // WebSocket + 轮询
   useEffect(() => {
     let unlisten: (() => void) | null = null;
@@ -201,7 +211,7 @@ export default function MonitorWindow() {
               state?.status === "waiting_permission" ? "#f5222d" :
               state?.status === "disconnected" ? "#888" : "#faad14",
           }} />
-          {decodeURIComponent(sessionName)}
+          {displayName}
         </span>
         <Button type="text" size="small" icon={<CloseOutlined />}
           data-tauri-drag-region="false"

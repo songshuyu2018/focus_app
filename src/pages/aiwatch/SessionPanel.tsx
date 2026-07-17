@@ -28,7 +28,12 @@ export default function SessionPanel({ serverId }: Props) {
   const fetchSessions = async () => {
     if (!serverId) return;
     try {
-      setSessions(await invoke<SessionState[]>("list_sessions", { serverId }));
+      const list = await invoke<SessionState[]>("list_sessions", { serverId });
+      setSessions(list);
+      // 同步所有会话名称到 localStorage，供监控窗读取
+      for (const s of list) {
+        localStorage.setItem(`__monitor_name_${s.id}`, s.name || s.id.slice(0, 8));
+      }
     } catch {}
   };
 
@@ -59,27 +64,29 @@ export default function SessionPanel({ serverId }: Props) {
     try {
       const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow");
       const label = `monitor-${session.id}`;
-      let win = await WebviewWindow.getByLabel(label);
-      if (win) {
-        win.setAlwaysOnTop(true);
-        win.show();
-        win.setFocus();
-      } else {
-        const name = encodeURIComponent(session.name || session.id.slice(0, 8));
-        win = new WebviewWindow(label, {
-          url: `/?ai_monitor=${serverId}&session=${session.id}&name=${name}`,
-          title: `别摸鱼 - ${session.name}`,
-          width: 380, height: 136,
-          decorations: false,
-          alwaysOnTop: true,
-          resizable: false,
-          skipTaskbar: true,
-          transparent: true,
-          shadow: false,
-        });
-        // 延迟消除白边
-        setTimeout(() => invoke("fix_monitor_transparent", { label }).catch(() => {}), 300);
+      const existing = await WebviewWindow.getByLabel(label);
+      if (existing) {
+        existing.setTitle(`别摸鱼 - ${session.name || session.id.slice(0, 8)}`);
+        existing.setAlwaysOnTop(true);
+        existing.show();
+        existing.setFocus();
+        // 通过 localStorage 通知悬浮窗更新名称
+        localStorage.setItem(`__monitor_name_${session.id}`, session.name || session.id.slice(0, 8));
+        return;
       }
+      const name = encodeURIComponent(session.name || session.id.slice(0, 8));
+      new WebviewWindow(label, {
+        url: `/?ai_monitor=${serverId}&session=${session.id}&name=${name}`,
+        title: `别摸鱼 - ${session.name}`,
+        width: 380, height: 136,
+        decorations: false,
+        alwaysOnTop: true,
+        resizable: false,
+        skipTaskbar: true,
+        transparent: true,
+        shadow: false,
+      });
+      setTimeout(() => invoke("fix_monitor_transparent", { label }).catch(() => {}), 300);
     } catch (e: any) { message.error(e); }
   };
 
